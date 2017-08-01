@@ -5,6 +5,7 @@ var hyperdrive = require('hyperdrive')
 var ram = require('random-access-memory')
 var pump = require('pump')
 var ndjson = require('ndjson')
+var mapboxgl = require('mapbox-gl')
 
 var key = '5c9100073ba750b66b124dcd1854c039056a6b8cea34d115aa21c0750154d46d'
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lYWhhbmQiLCJhIjoiaDd1MEJZQSJ9.fl3WTCt8MGNOSCGR_qqz7A'
