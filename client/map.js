@@ -31,9 +31,7 @@ Map.prototype = Object.create(Nanocomponent.prototype)
 Map.prototype.createElement = function (geojson) {
   this.geojson = geojson
   return html`
-    <div style="height: 500px">
-      <div id="map"></div>
-    </div>
+    <div class="vh-100" style="min-height:500px" id="map"></div>
   `
 }
 
