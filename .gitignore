@@ -1,3 +1,4 @@
 node_modules
 archive
 client/bundle.js
+config.js
