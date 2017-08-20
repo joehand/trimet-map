@@ -14,7 +14,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "choo": "^6.0.0",
-    "choo-log": "^7.1.0",
+    "choo-log": "^7.2.1",
     "express": "^4.15.3",
     "express-ws": "^3.0.0",
     "hyperdiscovery": "^6.0.4",
@@ -22,7 +22,7 @@
     "mapbox-gl": "^0.39.1",
     "microbounce": "^1.0.0",
     "moment": "^2.18.1",
-    "nanocomponent": "^6.0.0",
+    "nanocomponent": "^6.1.0",
     "nanologger": "^1.2.0",
     "on-idle": "^3.1.0",
     "pump": "^1.0.2",

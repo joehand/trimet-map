@@ -1,95 +1,121 @@
-var Nanocomponent = require('nanocomponent')
-var nanologger = require('nanologger')
-var mapboxgl = require('mapbox-gl')
-var onIdle = require('on-idle')
-var html = require('choo/html')
+const Nanocomponent = require('nanocomponent')
+const nanologger = require('nanologger')
+const mapboxgl = require('mapbox-gl')
+const onIdle = require('on-idle')
+const html = require('choo/html')
+const style = require('./map-style')
 
-module.exports = Map
+class Map extends Nanocomponent {
+  constructor () {
+    super()
 
-function Map () {
-  if (!(this instanceof Map)) return new Map()
-  Nanocomponent.call(this)
+    this._log = nanologger('map')
+    this._map = null
 
-  this._log = nanologger('mapbox-gl')
-  this.map = null
+    mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lYWhhbmQiLCJhIjoiaDd1MEJZQSJ9.fl3WTCt8MGNOSCGR_qqz7A'
+    this.state = Object.assign({}, style)
+  }
 
-  mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lYWhhbmQiLCJhIjoiaDd1MEJZQSJ9.fl3WTCt8MGNOSCGR_qqz7A'
-  this.opts = {
-    style: 'mapbox://styles/joeahand/cj5rh94o22rqz2rqi7i2i5tkq',
-    center: [-122.6782433, 45.5252814],
-    zoom: 12,
-    maxBounds: [
-      // Portland area bounds
-      [-123.1779407, 45.219892], // Southwest coordinates
-      [-122.2815557, 45.699901]  // Northeast coordinates
-    ]
+  createElement (props) {
+    this.state = Object.assign(this.state, props)
+    return html`
+      <div class="vh-100" style="min-height:500px" id="map"></div>
+    `
+  }
+
+  beforerender (el) {
+    const opts = Object.assign({container: el}, this.state)
+    this._log.info('create-map', opts)
+    this._map = new mapboxgl.Map(opts)
+  }
+
+  load () {
+    this._log.info('load', this.state)
+    this._map.resize()
+  }
+
+  getMap () {
+    return this._map
+  }
+
+  update (props) {
+    // Decide if you want to update or make new el
+    if (!this._map) return this._log.warn('missing map', 'failed to update')
+    this._log.info('update', props)
+    const self= this
+    const geojson = props.geojson
+
+    if (!geojson || !geojson.features.length) return false
+    if (!self._map.getSource('vehicles')) return self._addSource()
+
+    // TODO: check if changed
+    onIdle(function () {
+      self.state.geojson = geojson
+      self._map.getSource('vehicles').setData(geojson)
+    })
+  }
+
+  _addSource () {
+    const self = this
+
+    self._log.info('adding source')
+    self._map.addSource('vehicles', { type: 'geojson', data: self.state.geojson })
+    addLayers()
+
+    // self._log.info('is loaded', self._map.isStyleLoaded())
+    // if (self._map.isStyleLoaded()) addLayers()
+    // else self._map.on('load', addLayers)
+
+    return false
+
+    function addLayers () {
+      self._log.info('adding layers')
+      self._map.addLayer({
+        "id": "rail",
+        "type": "symbol",
+        "source": "vehicles",
+        "layout": {
+          "icon-image": "rail-15",
+          "icon-allow-overlap": true
+        },
+        "filter": ["==" , "type" , "rail"]
+      })
+      // self._map.addLayer({
+      //   "id": "bus-delay",
+      //   "type": "circle",
+      //   "source": "vehicles",
+      //   'paint': {
+      //     'circle-opacity': 0.5,
+      //     'circle-radius': {
+      //       property: 'delay',
+      //       type: 'exponential',
+      //       stops: [
+      //         [0, 10],
+      //         [600, 20]
+      //       ]
+      //     }
+      //   },
+      //   "filter": ["==" , "type" , "bus"]
+      // })
+      self._map.addLayer({
+        "id": "bus",
+        "type": "symbol",
+        "source": "vehicles",
+        "layout": {
+          "icon-image": "bus-15",
+          "icon-allow-overlap": true
+        },
+        "filter": ["==" , "type" , "bus"]
+      })
+    }
+  }
+
+  unload () {
+    this._log.info('unload')
+    this._map.remove()
+    this._map = null
+    this.state = null
   }
 }
 
-Map.prototype = Object.create(Nanocomponent.prototype)
-
-Map.prototype.createElement = function (geojson) {
-  this.geojson = geojson
-  return html`
-    <div class="vh-100" style="min-height:500px" id="map"></div>
-  `
-}
-
-Map.prototype.update = function (geojson) {
-  if (!this.map) return this._log.warn('missing map', 'failed to update')
-  if (!geojson.features.length) return false
-  // TODO: check if changed
-  var self = this
-  onIdle(function () {
-    self.geojson = geojson
-    self._log.info('update-map', geojson)
-    self.map.getSource('vehicles').setData(geojson)
-  })
-  return false
-}
-
-Map.prototype.beforerender = function (el) {
-  var opts = Object.assign({container: el}, this.opts)
-  this._log.info('create-map', opts)
-  var map = new mapboxgl.Map(opts)
-  this.map = map
-}
-
-Map.prototype.load = function () {
-  this._log.info('load')
-  var self = this
-
-  self.map.resize()
-  self.map.on('load', function () {
-    self._log.info('map on load')
-    self.map.addSource('vehicles', { type: 'geojson', data: self.geojson })
-    self.map.addLayer({
-      "id": "rail",
-      "type": "symbol",
-      "source": "vehicles",
-      "layout": {
-        "icon-image": "rail-15",
-        "icon-allow-overlap": true
-      },
-      "filter": ["==" , "type" , "rail"]
-    })
-    self.map.addLayer({
-      "id": "bus",
-      "type": "symbol",
-      "source": "vehicles",
-      "layout": {
-        "icon-image": "bus-15",
-        "icon-allow-overlap": true
-      },
-      "filter": ["==" , "type" , "bus"]
-    })
-  })
-}
-
-Map.prototype.unload = function () {
-  this._log.info('unload')
-
-  this.map.remove()
-  this.map = null
-  this.geojson = null
-}
+module.exports = Map
