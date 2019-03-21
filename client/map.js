@@ -42,7 +42,7 @@ class Map extends Nanocomponent {
     // Decide if you want to update or make new el
     if (!this._map) return this._log.warn('missing map', 'failed to update')
     this._log.info('update', props)
-    const self= this
+    const self = this
     const geojson = props.geojson
 
     if (!geojson || !geojson.features.length) return false
@@ -71,14 +71,14 @@ class Map extends Nanocomponent {
     function addLayers () {
       self._log.info('adding layers')
       self._map.addLayer({
-        "id": "rail",
-        "type": "symbol",
-        "source": "vehicles",
-        "layout": {
-          "icon-image": "rail-15",
-          "icon-allow-overlap": true
+        'id': 'rail',
+        'type': 'symbol',
+        'source': 'vehicles',
+        'layout': {
+          'icon-image': 'rail-15',
+          'icon-allow-overlap': true
         },
-        "filter": ["==" , "type" , "rail"]
+        'filter': ['==', 'type', 'rail']
       })
       // self._map.addLayer({
       //   "id": "bus-delay",
@@ -98,14 +98,14 @@ class Map extends Nanocomponent {
       //   "filter": ["==" , "type" , "bus"]
       // })
       self._map.addLayer({
-        "id": "bus",
-        "type": "symbol",
-        "source": "vehicles",
-        "layout": {
-          "icon-image": "bus-15",
-          "icon-allow-overlap": true
+        'id': 'bus',
+        'type': 'symbol',
+        'source': 'vehicles',
+        'layout': {
+          'icon-image': 'bus-15',
+          'icon-allow-overlap': true
         },
-        "filter": ["==" , "type" , "bus"]
+        'filter': ['==', 'type', 'bus']
       })
     }
   }

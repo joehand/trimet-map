@@ -2,9 +2,9 @@ const html = require('choo/html')
 const moment = require('moment')
 
 module.exports = function (stats) {
-    if (!stats || !stats.busCount) return ''
+  if (!stats || !stats.busCount) return ''
 
-    return html`
+  return html`
       <div>
         <dl class="db lh-title">
           <dd class="f5 fw4 ml0">Total Vehicles</dd>
@@ -21,12 +21,12 @@ module.exports = function (stats) {
       </div>
     `
 
-    function delay (val) {
-      if (val > 0) return moment.duration(val, 'seconds').humanize()
-      var absVal = val * -1
+  function delay (val) {
+    if (val > 0) return moment.duration(val, 'seconds').humanize()
+    var absVal = val * -1
 
       // 120 minutes
-      if (absVal > 120 * 60) return `${moment.duration(absVal, 'seconds').asHours().toFixed(2)} hours`
-      return moment.duration(absVal, 'seconds').humanize()
-    }
+    if (absVal > 120 * 60) return `${moment.duration(absVal, 'seconds').asHours().toFixed(2)} hours`
+    return moment.duration(absVal, 'seconds').humanize()
+  }
 }

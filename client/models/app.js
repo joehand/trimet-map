@@ -11,7 +11,7 @@ module.exports = function store (state, emitter) {
   const defaultStats = {
     totalDelay: 0,
     avgDelay: 0,
-    busCount: 0,
+    busCount: 0
     // loadPerCount: [0, 0, 0] // 0%, 70%, 90% are only values reported
   }
   state.stats = {}
@@ -42,10 +42,21 @@ module.exports = function store (state, emitter) {
   function doStats () {
     const data = state.geojson.features
     const stats = Object.assign({}, defaultStats)
+    const routeCounts = {}
+    const routeDelay = {}
     data.map(function (vehicle) {
+      var props = vehicle.properties
       stats.busCount++
-      stats.totalDelay += vehicle.properties.delay
-      // if (vehicle.properties.loadPercentage) {
+      stats.totalDelay += props.delay
+
+      if (props.routeNumber && props.type === 'bus') {
+        if (!routeCounts[props.routeNumber]) routeCounts[props.routeNumber] = [0, 0]
+        if (!routeDelay[props.routeNumber]) routeDelay[props.routeNumber] = [0, 0]
+
+        routeCounts[props.routeNumber][props.direction]++
+        routeDelay[props.routeNumber][props.direction] += props.delay
+      }
+      // if (props.loadPercentage) {
       //   switch (vehicle.properties.loadPercentage) {
       //     case 0:
       //       stats.loadPerCount[0]++
@@ -59,7 +70,12 @@ module.exports = function store (state, emitter) {
       //   }
       // }
     })
-    stats.avgDelay = +(stats.totalDelay/stats.busCount).toFixed(2)
+    Object.keys(routeDelay).map(function (routeNum) {
+      routeDelay[routeNum][0] = routeDelay[routeNum][0]/routeCounts[routeNum][0]
+      routeDelay[routeNum][1] = routeDelay[routeNum][1]/routeCounts[routeNum][1]
+    })
+    console.log(routeDelay)
+    stats.avgDelay = +(stats.totalDelay / stats.busCount).toFixed(2)
     emitter.emit('update-stats', stats)
   }
 
@@ -92,7 +108,7 @@ module.exports = function store (state, emitter) {
   function replicate () {
     emitter.emit('log:info', 'replicate')
     var wsProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://'
-    var wsUrl = config.wsUrl || wsProtocol + location.host // ???
+    var wsUrl = config.wsUrl || wsProtocol + window.location.host // ???
     var ws = wss(wsUrl)
     ws.on('connect', function () {
       emitter.emit('log:info', 'websockets connected')
@@ -100,6 +116,7 @@ module.exports = function store (state, emitter) {
       // if (!initialFetchDone && mapLoaded) fetchData()
     })
     pump(ws, archive.replicate({live: true}), ws, function (err) {
+      if (err) console.error(err)
       setTimeout(replicate, 500)
     })
   }
